@@ -58,11 +58,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="System\GameClock.cs" />
-    <Compile Include="System\Core.cs" />
+    <Compile Include="Core\GameClock.cs" />
+    <Compile Include="Core\Core.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="System\GameTime.cs" />
+    <Compile Include="Core\GameTime.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
