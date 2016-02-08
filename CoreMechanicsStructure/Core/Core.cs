@@ -80,7 +80,7 @@ namespace Udsahn
             // Called once before all other methods.
             // Initialize all required objects.
             clock = new GameClock();
-            clock.TimeMultiplier = 2.1;
+            clock.TimeMultiplier = 1;
 
             Console.WriteLine("\nSimulation Initialized. Clock time variance multiplier set to :: " + clock.TimeMultiplier);
         }
