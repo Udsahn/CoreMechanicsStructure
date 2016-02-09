@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using System.Globalization;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Udsahn.Framework
 {
@@ -22,7 +23,6 @@ namespace Udsahn.Framework
 
         public float X;
         public float Y;
-
 
         /// <summary>
         /// Initializes a new instance of Vector2.
@@ -153,6 +153,141 @@ namespace Udsahn.Framework
                     (object) this.X.ToString((IFormatProvider)currentCulture),
                     (object) this.Y.ToString((IFormatProvider)currentCulture)
                 });
+        }
+
+        #endregion
+
+        #region Simple Maths
+
+        /// <summary>
+        /// Returns a vector pointing in the opposite direction.
+        /// </summary>
+        public static Vector2 Negate(Vector2 value)
+        {
+            Vector2 result;
+            result.X = -value.X;
+            result.Y = -value.Y;
+            return result;
+        }
+
+        /// <summary>
+        /// Returns a vector pointing in the opposite direction.
+        /// </summary>
+        public static void Negate(ref Vector2 value, out Vector2 result)
+        {
+            result = Vector2.Negate(value);
+        }
+
+        /// <summary>
+        /// Adds two vectors together.
+        /// </summary>
+        public static Vector2 Add(Vector2 value1, Vector2 value2)
+        {
+            Vector2 result;
+            result.X = value1.X + value2.X;
+            result.Y = value1.Y + value2.Y;
+            return result;
+        }
+
+        /// <summary>
+        /// Adds two vectors together.
+        /// </summary>
+        public static void Add(ref Vector2 value1, ref Vector2 value2, out Vector2 result)
+        {
+            result = Vector2.Add(value1, value2);
+        }
+
+        /// <summary>
+        /// Subtracts two vectors.
+        /// </summary>
+        public static Vector2 Subtract(Vector2 value1, Vector2 value2)
+        {
+            Vector2 result;
+            result.X = value1.X - value2.X;
+            result.Y = value1.Y - value2.Y;
+            return result;
+        }
+
+        /// <summary>
+        /// Subtracts two vectors.
+        /// </summary>
+        public static void Subtract(ref Vector2 value1, ref Vector2 value2, out Vector2 result)
+        {
+            result = Vector2.Subtract(value1, value2);
+        }
+
+        /// <summary>
+        /// Multiplies two vectors.
+        /// </summary>
+        public static Vector2 Multiply(Vector2 value1, Vector2 value2)
+        {
+            Vector2 result;
+            result.X = value1.X * value2.X;
+            result.Y = value1.Y * value2.Y;
+            return result;
+        }
+
+        /// <summary>
+        /// Multiplies two vectors.
+        /// </summary>
+        public static void Multiply(ref Vector2 value1, ref Vector2 value2, out Vector2 result)
+        {
+            result = Vector2.Multiply(value1, value2);
+        }
+
+        /// <summary>
+        /// Multiplies a vector by a scalar value.
+        /// </summary>
+        public static Vector2 Multiply(Vector2 value, float scaleFactor)
+        {
+            Vector2 result;
+            result.X = value.X * scaleFactor;
+            result.Y = value.Y * scaleFactor;
+            return result;
+        }
+
+        /// <summary>
+        /// Multiplies a vector by a scalar value.
+        /// </summary>
+        public static void Multiply(ref Vector2 value, float scaleFactor, out Vector2 result)
+        {
+            result = Vector2.Multiply(value, scaleFactor);
+        }
+
+        /// <summary>
+        /// Divides two vectors.
+        /// </summary>
+        public static Vector2 Divide(Vector2 value1, Vector2 value2)
+        {
+            Vector2 result;
+            result = value1 / value2;
+            return result;
+        }
+
+        /// <summary>
+        /// Divides two vectors.
+        /// </summary>
+        public static void Divide(ref Vector2 value1, ref Vector2 value2, out Vector2 result)
+        {
+            result = Vector2.Divide(value1, value2);
+        }
+
+        /// <summary>
+        /// Divides a vector by a scalar value.
+        /// </summary>
+        public static Vector2 Divide(Vector2 value, float scaleFactor)
+        {
+            Vector2 result;
+            result = value / scaleFactor;
+            return result;
+        }
+
+        /// <summary>
+        /// Divides a vector by a scalar value.
+        /// </summary>
+        public static void Divide(ref Vector2 value, float scaleFactor, out Vector2 result)
+        {
+            result = Vector2.Divide(value, scaleFactor);
         }
 
         #endregion
@@ -462,8 +597,135 @@ namespace Udsahn.Framework
         /// <param name="value1">The first position in the interpolation.</param><param name="value2">The second position in the interpolation.</param><param name="value3">The third position in the interpolation.</param><param name="value4">The fourth position in the interpolation.</param><param name="amount">Weighting factor.</param><param name="result">[OutAttribute] A vector that is the result of the Catmull-Rom interpolation.</param>
         public static void CatmullRom(ref Vector2 value1, ref Vector2 value2, ref Vector2 value3, ref Vector2 value4, float amount, out Vector2 result)
         {
+            // Equation found: http://www.mvps.org/directx/articles/catmull/
+            // Catmull-Rom spline.
             result = Vector2.CatmullRom(value1, value2, value3, value4, amount);
         }
+
+        /// <summary>
+        /// Performs a Hermite spline interpolation.
+        /// </summary>
+        /// <param name="p1">Point 1</param>
+        /// <param name="t1">Tangent for point 1</param>
+        /// <param name="p2">Point 2</param>
+        /// <param name="t2">Tangent for point 2</param>
+        /// <param name="scale">Weighting factor.</param>
+        public static Vector2 Hermite(Vector2 p1, Vector2 t1, Vector2 p2, Vector2 t2, float scale)
+        {
+            // Equation :: http://cubic.org/docs/hermite.htm
+            // Hermite spline interpolation!
+
+            // Matrix form of the equation:
+            //
+            // Vector S: The interpolation-point and it's powers up to 3:
+            // Vector C: The parameters of our hermite curve:
+            // Matrix h: The matrix form of the 4 hermite polynomials:
+            //
+            //                                                 h1  h2  h3  h4
+            //                                              ___|___|___|___|___
+            //      | s ^ 3 |            | P1 |             |  2  -2   1   1  |
+            // S =  | s ^ 2 |       C =  | P2 |        h =  | -3   3  -2  -1  |
+            //      | s ^ 1 |            | T1 |             |  0   0   1   0  |
+            //      | 1     |            | T2 |             |  1   0   0   0  |
+
+            float s = scale;
+            float sSquared = (float)Math.Pow(s, 2);
+            float sCubed = (float)Math.Pow(s, 3);
+
+            float h1 = (float)(2.0 * (double)sCubed - 3.0 * (double)sSquared + 1.0);
+            float h2 = (float)(-2.0 * (double)sCubed + 3.0 * (double)sSquared);
+            float h3 = (float)((double)sCubed - 2.0 * (double)sSquared + (double)s);
+            float h4 = (float)((double)sCubed - (double)sSquared);
+
+            Vector2 result;
+
+            // Equation following the matrix above.
+            result.X = (float)(h1 * (double)p1.X +
+                               h2 * (double)p2.X +
+                               h3 * (double)t1.X +
+                               h4 * (double)t2.X);
+
+            result.Y = (float)(h1 * (double)p1.Y +
+                               h2 * (double)p1.Y +
+                               h3 * (double)t1.Y +
+                               h4 * (double)t2.Y);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Performs a Hermite spline interpolation.
+        /// </summary>
+        /// <param name="p1">Point 1</param>
+        /// <param name="t1">Tangent for point 1</param>
+        /// <param name="p2">Point 2</param>
+        /// <param name="t2">Tangent for point 2</param>
+        /// <param name="scale">Weighting factor.</param>
+        public static void Hermite(ref Vector2 p1, ref Vector2 t1, ref Vector2 p2, ref Vector2 t2, float scale, out Vector2 result)
+        {
+            result = Vector2.Hermite(p1, t1, p2, t2, scale);
+        }
+
+        public static Vector2 Bezier(Vector2 p1, Vector2 t1, Vector2 p2, Vector2 t2, float scale)
+        {
+            // Equation :: http://cubic.org/docs/hermite.htm
+            // Hermite spline interpolation!
+
+            // Matrix form of the equation:
+            //
+            // Vector S: The interpolation-point and it's powers up to 3:
+            // Vector C: The parameters of our hermite curve:
+            // Matrix h: The matrix form of the 4 hermite polynomials:
+            //
+            //                                                 h1  h2  h3  h4
+            //                                              ___|___|___|___|___
+            //      | s ^ 3 |            | P1 |             |  2  -2   1   1  |
+            // S =  | s ^ 2 |       C =  | P2 |        h =  | -3   3  -2  -1  |
+            //      | s ^ 1 |            | T1 |             |  0   0   1   0  |
+            //      | 1     |            | T2 |             |  1   0   0   0  |
+            //
+            // For Bezier curves, this matrix is used in place of 'h'
+            //      
+            //                                                 b1  b2  b3  b4
+            //                                              ___|___|___|___|___
+            //      | s ^ 3 |            | P1 |             | -1   3  -3   1  |
+            // S =  | s ^ 2 |       C =  | P2 |        b =  |  3  -6   3   0  |
+            //      | s ^ 1 |            | T1 |             | -3   3   0   0  |
+            //      | 1     |            | T2 |             |  1   0   0   0  |
+
+            float b = scale;
+            float bSquared = (float)Math.Pow(b, 2);
+            float bCubed = (float)Math.Pow(b, 3);
+
+            float b1 = (float)(-(double)bCubed + 3.0 * (double)bSquared - 3.0 * (double)b + 1.0);
+            float b2 = (float)(3.0 * (double)bCubed - 6.0 * (double)bSquared + 3.0 * (double)b);
+            float b3 = (float)(-3.0 * (double)bCubed + 3.0 * (double)bSquared);
+            float b4 = bCubed;
+
+            Vector2 result;
+
+            result.X = (float)(b1 * (double)p1.X +
+                               b2 * (double)p2.X +
+                               b3 * (double)t1.X +
+                               b4 * (double)t2.X);
+
+            result.Y = (float)(b1 * (double)p1.Y +
+                               b2 * (double)p2.Y +
+                               b3 * (double)t1.Y +
+                               b4 * (double)t2.Y);
+
+            return result;
+        }
+
+        public static void Bezier (ref Vector2 p1, ref Vector2 t1, ref Vector2 p2, ref Vector2 t2, float scale, out Vector2 result)
+        {
+            result = Vector2.Bezier(p1, t1, p2, t2, scale);
+        }
+
+        // 
+        // Transform code would go here, but I decided to skip them.
+        //
+        // Tee-hee~ ;)
 
         #endregion
     }
